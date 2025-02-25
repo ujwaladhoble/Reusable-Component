@@ -13,6 +13,7 @@ const ItemList = () => {
   const items = useMemo(() => Array.from({ length: 10000 }, (_, i) => `Item ${i + 1}`), []);
   const pageSize = 100;
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   // useMemo is used here to memoize paginated items based on currentPage
   // This ensures only the required slice of data is recalculated when currentPage or items change
@@ -25,28 +26,38 @@ const ItemList = () => {
  // useCallback is used here to memoize the handlePageChange function
   // This prevents unnecessary re-renders and ensures performance optimization during pagination
   const handlePageChange = useCallback((direction) => {
+    setLoading(true);
     setCurrentPage((prev) => prev + direction);
+    setLoading(false);
   }, []);
 
   return (
     <div>
       <h4>Items (Page {currentPage})</h4>
-      <div className="list-group mb-3">
-        {paginatedItems.map((item, index) => (
-          <ListItem key={index} item={item} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="d-flex justify-content-center my-3">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      ) : (
+        <div className="list-group mb-3">
+          {paginatedItems.map((item, index) => (
+            <ListItem key={index} item={item} />
+          ))}
+        </div>
+      )}
       <div className="d-flex justify-content-between">
         <Button
           variant="outline-primary"
-          disabled={currentPage === 1}
+          disabled={currentPage === 1 || loading}
           onClick={() => handlePageChange(-1)}
         >
           Previous
         </Button>
         <Button
           variant="outline-primary"
-          disabled={currentPage === Math.ceil(items.length / pageSize)}
+          disabled={currentPage === Math.ceil(items.length / pageSize) || loading}
           onClick={() => handlePageChange(1)}
         >
           Next
